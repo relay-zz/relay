@@ -14,7 +14,7 @@ limitations under the License. */
 
 var relay = function(ctx) {
 
-//finds global variables and nested properties of global variables
+//returns a global variable or a property of a variable by name
 function findNestedObject(path) {
   var i, obj = ctx;
   if((i = obj[path])) return i;
@@ -29,7 +29,6 @@ function findNestedObject(path) {
 var nodeObjMap = {};
 var nodeObjMapIdx = 1;
 
-//adds an object to the map and generates a unique number saved to the node as an expando
 function hookObjectToNode(obj, node) {
   if(node.nodeType != 1) throw node;
   if(!node._relayAppId) {
@@ -39,7 +38,7 @@ function hookObjectToNode(obj, node) {
   }
 }
 
-function unhookObjectOrNode(node) {
+function unhookObject(node) {
   node = node.relayBaseNode || node;
   var id = node._relayAppId;
   nodeObjMap[id].relayBaseNode = node._relayAppId = null;
@@ -60,9 +59,12 @@ R.start = R.initTree = function(root) {
     node = list[i];
     if(!node._relayAppId) {
       if((appName = node.cite).substr(0, 3) == "js:") {
-        appName = appName.substr(3);
+        appName = appName.substr(3);  //object names are stored as URIs in the CITE attribute: <INS CITE="js:com.acme.MyApp">
         obj = findNestedObject(appName);
 
+        //we allow instantiating objects by these methods:
+        //= new com.acme.MyApp()
+        //= com.acme.MyApp.getInstance()
         obj = obj.getInstance ? obj.getInstance(appName, node) : new obj(appName, node);
         hookObjectToNode(obj, node);
       }
@@ -72,8 +74,9 @@ R.start = R.initTree = function(root) {
 
 function R(type, dataOrNode, node) {
   node = node || dataOrNode;
-  if(node == ctx) throw ctx;
+  if(!node || node == ctx) throw type;  //node parameter was [Window] or null
 
+  //we allow passing in an Event instead of Node
   if(!node.nodeType) node = node.relayBaseNode || node.target || node.srcElement;
 
   var obj,
@@ -82,13 +85,13 @@ function R(type, dataOrNode, node) {
       target: node,
       detail: dataOrNode == node ? null : dataOrNode,
       bubbles: true,
-      stopPropagation: function() {this.bubbles = true;}
+      stopPropagation: function() {this.bubbles = false;}
     };
 
   while(event.bubbles && node) {
     if(node._relayAppId && (obj = getObjectFromNode(node)) && obj.onRelayEvent) {
       event.currentTarget = node;
-      obj.onRelayEvent(event);
+      obj.onRelayEvent(event);  //only called if the object supports the onRelayEvent handler
     }
     node = node.parentNode;
   }
@@ -97,6 +100,7 @@ function R(type, dataOrNode, node) {
   return event;
 }
 
+//export functions
 R.findNestedObject = findNestedObject;
 R.hookObjectToNode = hookObjectToNode;
 R.unhookObjectOrNode = unhookObjectOrNode;
