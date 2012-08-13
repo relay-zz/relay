@@ -1,0 +1,103 @@
+<html>
+<head><title>Relay Framework Demo</title>
+<script src="relay.js"></script>
+<script>
+var Mail = {};
+
+Mail.Folders = {
+  openFolder: function(id) {
+    relay.byId("msglist").setMessages(data[id]);
+  }
+};
+
+Mail.MessageList = {
+  getInstance: function(appName, node) {this.node = node; return this},
+
+  setMessages: function(list) {
+    this.list = list;
+    tmpl(this.node, this.list);
+  },
+
+  openMessage: function(id) {
+    relay.byId("pview").openPreview(this.list[id]);
+  }
+};
+
+Mail.Preview = {
+  getInstance: function(appName, node) {this.node = node; return this},
+
+  openPreview: function(msg) {
+    this.msg = msg;
+    tmpl(this.node, [msg]);
+  }
+};
+
+onload = function() {
+  var list = [];
+  for(var i in data) list.push({id:i});
+  tmpl(document.getElementById("fdr"), list);
+  relay.start();
+};
+
+var data = {
+  5551: [
+    {id:0, from:"Alice", to:"Bob", subject:"Did you get my message?", body:"Dear Bob,<br>did you?"},
+    {id:1, from:"Bob", to:"Alice", subject:"Re: Did you get my message?", body:"Yes"},
+    {id:2, from:"Alice", to:"Bob", subject:"Re: Re: Did you get my message?", body:"Okidok"}
+  ],
+  5552: [
+    {id:0, from:"Charlie", to:"Daniel", subject:"Near city center", body:"Dear Daniel,<br>Where are you located?"},
+    {id:1, from:"Daniel", to:"Charlie", subject:"Re: Near city center", body:"Around town"},
+    {id:2, from:"Charlie", to:"Daniel", subject:"Re: Re: Near city center", body:"No duuu"}
+  ],
+  5553: [
+    {id:0, from:"Eric", to:"Fanny", subject:"Where's my car keys?", body:"Dear Fanny,<br>where's my car keys?"},
+    {id:1, from:"Fanny", to:"Eric", subject:"Re: Where's my car keys?", body:"In your hand."},
+    {id:2, from:"Eric", to:"Fanny", subject:"Re: Re: Where's my car keys?", body:"That was a rhetorical question."}
+  ]
+};
+
+function tmpl(node, jsonList) {
+  node = node.getElementsByTagName("script")[0];
+  var html = [];
+  for(var i=0; i<jsonList.length; i++) html.push(node.innerHTML.replace(/%([a-z]*)%/g, function(m, s) {return jsonList[i][s]}));
+  node.nextSibling.innerHTML = html.join("");
+}
+</script>
+
+<style>
+ins {text-decoration:none; height:90%}
+table, tr, td {padding:0; border:0; margin:0}
+.clickable {border-right:1px solid #ccc}
+.clickable div, table {cursor:pointer; padding:0.5em; border-bottom:1px solid #ccc}
+.clickable div:hover, table:hover {background:#eee}
+</style>
+
+</head>
+<body>
+
+<ins cite="js:Mail">
+  <ins id="fdr" cite="js:Mail.Folders" style="float:left; width:10%" class="clickable">
+    <script type="text/x-template">
+      <div onclick="relay('openFolder', %id%, this);">Folder %id%</div>
+    </script><span></span>
+  </ins>
+
+  <ins id="msglist" cite="js:Mail.MessageList" style="float:left; width:30%" class="clickable">
+    <script type="text/x-template">
+      <table onclick="relay('openMessage', %id%, this);" width=100%>
+        <tr><td>%from%</td><td align=right>%to%</td></tr>
+        <tr><td colspan=2>%subject%</td></tr>
+      </table>
+    </script><span></span>
+  </ins>
+
+  <ins id="pview" cite="js:Mail.Preview" style="float:left; width:58%">
+    <script type="text/x-template">
+      <blockquote>%body%</blockquote>
+    </script><span></span>
+  </ins>
+</ins>
+
+</body>
+</html>
