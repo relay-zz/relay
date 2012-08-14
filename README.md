@@ -36,7 +36,7 @@ Concepts
 Think of each module as being a separate browser window. Each "window" 
 has it's own set of global variables and functions which can be invoked 
 from anywhere within the window. The global variables are not exposed 
-to the outside world, therefore creating a nice self-contained cocoon.
+to the outside world, thereby creating a nice self-contained cocoon.
 
 The global functions can also be called inline by the HTML and calling 
 them inline will not affect other functions outside of the window, in 
@@ -74,9 +74,10 @@ to different instances of `Button`.
 #### Localized handlers
 
 Since messages are passed down the node tree until it meets an object 
-which is able to handle it, you can implement localized handlers.
+which is able to handle it, you can implement what we call localized 
+handlers.
 
-An ideal example is in making status indicators.
+An ideal example is in making status indicators (loading indicators).
 
 When a status event propagates out from within a module, if the module 
 can show it's own status, then it can handle it by itself. If 
@@ -92,16 +93,16 @@ Rules of engagement
 They are automatically loaded when the `relay` parser finds an 
 `<INS cite="js:.....">` tag that references a Javascript constructor.
 
-* Relay will instantiate that object and store a reference to it. It 
-cannot be referenced directly except through the node.
+* Relay will instantiate that object and store a reference to it 
+privately. It cannot be referenced directly except through the node.
 
 * Application objects should not reference each other directly, but 
 should call each other by passing messages down the node tree.
 
 * If a message is passed down by a node higher up in the tree and the 
 current object cannot handle it (because it doesn't have a method of 
-the same name), then the message is passed further down the tree until 
-someone can handle it.
+the correct name), then the message is passed further down the tree 
+until someone can handle it.
 
 
 Example
