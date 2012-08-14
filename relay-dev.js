@@ -105,7 +105,7 @@ function R(type, args, node) {
     //we allow inline functions to run with the JSObject set as the scope: relay(function(){this.showMenu();}, this);
     while(node) {
       if(node._relayAppId && (obj = getObjectFromNode(node))) {
-        return type.call(obj, event) || node;
+        return type.apply(obj, args) || node;
       }
       node = node.parentNode;
     }
@@ -118,7 +118,7 @@ function R(type, args, node) {
       }
       node = node.parentNode;
     }
-    return value || node;
+    if(value != R.BUBBLE) throw ;
   }
 }
 

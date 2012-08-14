@@ -13,6 +13,10 @@ Relay imposes an organization where messages are passed down the HTML
 tree to other Javascript objects, thereby eliminating the need to 
 pass object references around.
 
+Relay introduces a way, not only, for discrete objects/widgets to 
+communicate with each other, but for isolated applications to 
+communicate with each other.
+
 Installation
 ------------
 
@@ -26,8 +30,8 @@ before your `</BODY>` tag.
 
     <script>relay.start();</script>
 
-Concepts
---------
+Core Concepts
+-------------
 
 * Javascript objects should not be loaded/instantiated programmatically. 
 They are automatically loaded when the `relay` parser finds an 
@@ -78,17 +82,22 @@ knows whether to call `firefox.toolbar.go()` or `firefox.urlbar.go()`.
 Syntax
 ------
 
-
 #### `relay(functionName, [parameters,]*, thisNode)`
 
-example:
-   relay("showFolder", "C001", this);
+Example: `relay("showFolder", "C001", this);`
 
-Walks down the node tree starting from the current node (this) until 
+Walks down the node tree starting from the current node until 
 it finds a Javascript object with a "showFolder" method and calls it 
 with "C001" as the parameter.
 
-Passes a message down the node tree.
+
+#### `relay(inlineFunction, [parameters,]*, thisNode)`
+
+Example: `relay(function() {this.showFolder();}, this);`
+
+Walks down the node tree starting from the current node until
+it find a Javascript object and calls the inline function with the 
+Javascript object as the `this` scope.
 
 
 #### `relay.start()` and `relay.initTree(node)`

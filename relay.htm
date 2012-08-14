@@ -85,7 +85,7 @@ table, tr, td {padding:0; border:0; margin:0}
 
   <ins id="msglist" cite="js:Mail.MessageList" style="float:left; width:30%" class="clickable">
     <script type="text/x-template">
-      <table onclick="relay('openMessage', %id%, this);" width=100%>
+      <table onclick="relay(function(){this.openMessage(%id%)}, this);" width=100%>
         <tr><td>%from%</td><td align=right>%to%</td></tr>
         <tr><td colspan=2>%subject%</td></tr>
       </table>
