@@ -1,5 +1,5 @@
-relay framework
-===============
+relay
+=====
 
 Relay is a framework for organizing Javascript applications into scoped 
 modules that are tied to HTML nodes.
@@ -29,17 +29,17 @@ before your `</BODY>` tag.
 Concepts
 --------
 
-Javascript objects should not be loaded/instantiated programmatically. 
-They are loaded when the `relay` parser finds an `<INS cite="js:...">` 
-tag that references a Javascript object.
+* Javascript objects should not be loaded/instantiated programmatically. 
+They are automatically loaded when the `relay` parser finds an 
+`<INS cite="js:.....">` tag that references a Javascript constructor.
 
-Relay will instantiate that object and store a reference to it. It 
+* Relay will instantiate that object and store a reference to it. It 
 cannot be referenced directly except through the node.
 
-Application objects should not reference each other directly, but 
+* Application objects should not reference each other directly, but 
 should call each other by passing messages down the node tree.
 
-If a message is passed down by a node higher up in the tree and the 
+* If a message is passed down by a node higher up in the tree and the 
 current object cannot handle it (by not having a method of the same 
 name), then the message is passed further down the tree until someone 
 can handle it.
@@ -69,13 +69,17 @@ This is a fictional example of a web browser application:
     </ins>
     </body>
 
-There are multiple places where `go` is called, but some will only call 
-`firefox.toolbar.go()` and some only call `firefox.urlbar.go()`.
+The `relay` call does not have to be inline in the HTML, but can be 
+called inside Javascript code.
+
+Notice how there are multiple places where `go` is called, but `relay` 
+knows whether to call `firefox.toolbar.go()` or `firefox.urlbar.go()`.
 
 Syntax
 ------
 
-### `relay(functionName, [parameters,] thisNode)`
+
+#### `relay(functionName, [parameters,]*, thisNode)`
 
 example:
    relay("showFolder", "C001", this);
@@ -86,7 +90,16 @@ with "C001" as the parameter.
 
 Passes a message down the node tree.
 
-### `relay.start()` and `relay.initTree(node)`
+
+#### `relay.start()` and `relay.initTree(node)`
 
 Parses a node's children for `<INS>` tags that have objects to be 
 instantiated. Or parses the document's root node.
+
+
+#### `relay.byId(string)`
+
+Gets the Javascript object that is hooked to the node with the 
+specified ID attribute. The ID is retrieved using `getElementById` and 
+this function is the same as calling 
+`relay.getObjectFromNode(document.getElementById(id))`.
