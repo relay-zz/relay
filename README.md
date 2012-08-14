@@ -13,9 +13,6 @@ Relay imposes an organization where messages are passed down the HTML
 tree to other Javascript objects, thereby eliminating the need to 
 pass object references around.
 
-Relay introduces a way, not only, for discrete objects/widgets to 
-communicate with each other, but for isolated applications to 
-communicate with each other.
 
 Installation
 ------------
@@ -30,8 +27,66 @@ before your `</BODY>` tag.
 
     <script>relay.start();</script>
 
-Core Concepts
--------------
+
+Concepts
+--------
+
+#### Little windows
+
+Think of each module as being a separate browser window. Each "window" 
+has it's own set of global variables and functions which can be invoked 
+from anywhere within the window. The global variables are not exposed 
+to the outside world, therefore creating a nice self-contained cocoon.
+
+The global functions can also be called inline by the HTML and calling 
+them inline will not affect other functions outside of the window, in 
+say, an iframe or a parent frame.
+
+These windows serve as nice self-contained modules that allow functions 
+to be freely shared within itself, yet separated from the world outside.
+
+Think of the parallels in the follow examples:
+
+`<INS cite="js:.....">` maps to `window.onload = function() {}`
+
+`relay("openLightbox", "/", this)` maps to `window.open("/", "_blank")`
+
+`<div onclick="relay('setCount', 1, this);">` maps to `<div onclick="count=1;">`
+
+
+#### Inline event handlers
+
+If you yearn for the good old days of inline event handlers, but don't 
+want to pollute the global object or need the handler to be specific 
+to a particular instance, then `relay` can help you.
+
+    <INS cite="js:ui.Button">
+      <input type="checkbox" onclick="relay('checkMe', 1, this);">
+    </INS>
+    <INS cite="js:ui.Button">
+      <input type="checkbox" onclick="relay('checkMe', 1, this);">
+    </INS>
+
+Clicking on either checkboxes won't mix up their code as they refer 
+to different instances of `Button`.
+
+
+#### Localized handlers
+
+Since messages are passed down the node tree until it meets an object 
+which is able to handle it, you can implement localized handlers.
+
+An ideal example is in making status indicators.
+
+When a status event propagates out from within a module, if the module 
+can show it's own status, then it can handle it by itself. If 
+not, then a higher up module can use it's own status indicator. If it 
+still can't, then it will propagate to the top and the main application 
+can use the ultimate status indicator to indicate status.
+
+
+Rules of engagement
+-------------------
 
 * Javascript objects should not be loaded/instantiated programmatically. 
 They are automatically loaded when the `relay` parser finds an 
@@ -44,14 +99,16 @@ cannot be referenced directly except through the node.
 should call each other by passing messages down the node tree.
 
 * If a message is passed down by a node higher up in the tree and the 
-current object cannot handle it (by not having a method of the same 
-name), then the message is passed further down the tree until someone 
-can handle it.
+current object cannot handle it (because it doesn't have a method of 
+the same name), then the message is passed further down the tree until 
+someone can handle it.
+
 
 Example
 -------
 
-This is a fictional example of a web browser application:
+This is a fictional example of a web browser application with inline 
+event handlers:
 
     <body>
     <ins cite="js:firefox">
@@ -73,8 +130,8 @@ This is a fictional example of a web browser application:
     </ins>
     </body>
 
-The `relay` call does not have to be inline in the HTML, but can be 
-called inside Javascript code.
+(The `relay` call does not have to be inline in the HTML, but can be 
+called inside Javascript code.)
 
 Notice how there are multiple places where `go` is called, but `relay` 
 knows whether to call `firefox.toolbar.go()` or `firefox.urlbar.go()`.
