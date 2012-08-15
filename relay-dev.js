@@ -64,11 +64,11 @@ R.start = R.initTree = function(root) {
   var node, appName, obj,
     list = root.getElementsByTagName("INS");
 
-  for(var i = 0; i < list.length; i++) {
-    node = list[i];
+  for(var i = 0; node = list[i]; i++) {
     if(!node._relayAppId) {
       if((appName = node.cite).substr(0, 3) == "js:") {
-        appName = appName.substr(3);  //object names are stored as URIs in the CITE attribute: <INS CITE="js:com.acme.MyApp">
+        //object names are stored as URIs in the CITE attribute: <INS CITE="js:com.acme.MyApp">
+        appName = appName.substr(3);
         obj = findNestedObject(appName);
 
         //we allow instantiating objects by these methods:
@@ -102,7 +102,8 @@ function R(type, args, node) {
 
   var value, obj;
   if(typeof type == FUNCTION) {
-    //we allow inline functions to run with the JSObject set as the scope: relay(function(){this.showMenu();}, this);
+    //we allow inline functions to run with the JSObject set as the scope:
+    //relay(function(){this.showMenu();}, this);
     while(node) {
       if(node._relayAppId && (obj = getObjectFromNode(node))) {
         return type.apply(obj, args) || node;
@@ -118,7 +119,6 @@ function R(type, args, node) {
       }
       node = node.parentNode;
     }
-    if(value != R.BUBBLE) throw ;
   }
 }
 
