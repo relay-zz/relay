@@ -167,6 +167,9 @@ the next node with a Javascript object with a "showFolder" method.
 
 This function returns whatever "showFolder" returns.
 
+If the call is being made inside an object backed by an `INS` node, 
+you can also make the call using this syntax: 
+`this.relay("showFolder", "C001");`
 
 #### `relay(inlineFunction, [parameters,]*, thisNode)`
 
@@ -175,7 +178,6 @@ Example: `relay(function() {this.showFolder();}, this);`
 Walks down the node tree starting from the current node until
 it find a Javascript object and calls the inline function with the 
 Javascript object as the `this` scope.
-
 
 #### `relay.start()` and `relay.initTree(node)`
 
