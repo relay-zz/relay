@@ -105,27 +105,27 @@ the correct name), then the message is passed further down the tree
 until someone can handle it.
 
 
-Example
--------
+Examples
+--------
 
-#### Asking permission from higher ups
+#### Asking parents for permission
 
-A module can send a message to it's parents asking if any of them 
+A module can send a message to it's parents asking if any of them have 
 objections to navigating away from the current page.
 
-ChatWidget.loadURL = function(url) {
-  var ok = this.relay("canUnload");
-  if(ok) location.href = url;
-};
+    ChatWidget.loadURL = function(url) {
+      var ok = this.relay("canUnload");
+      if(ok) location.href = url;
+    };
 
-#### Sending an unknown action to be handled higher up
+#### Asking parents to handle an unknown action
 
 A module can handle an unknown request by passing it to it's parents 
 to be handled.
 
-ChatWidget.mailto.onClick = function(node) {
-  this.relay("sendmail", node.href);
-};
+    ChatWidget.mailtoButton.onClick = function(node) {
+      this.relay("sendmail", node.href);
+    };
 
 #### A web browser application that uses inline handlers
 
