@@ -4,7 +4,7 @@ relay
 Relay is a framework for organizing Javascript applications into scoped 
 modules that are tied to HTML nodes.
 
-Relay is not a self-contained framework and does not duplicate the 
+Relay is not a closed framework and does not duplicate the 
 myriad of helper functions like [jQuery](http://www.jquery.com) or 
 template systems like [mustache](http://mustache.github.com), which work 
 fine in tandem with this framework.
@@ -77,7 +77,7 @@ Since messages are passed down the node tree until it meets an object
 which is able to handle it, you can implement what we call localized 
 handlers.
 
-An ideal example is in making status indicators (loading indicators).
+An ideal example is in making status/loading indicators.
 
 When a status event propagates out from within a module, if the module 
 can show it's own status, then it can handle it by itself. If 
@@ -108,8 +108,26 @@ until someone can handle it.
 Example
 -------
 
-This is a fictional example of a web browser application with inline 
-event handlers:
+#### Asking permission from higher ups
+
+A module can send a message to it's parents asking if any of them 
+objections to navigating away from the current page.
+
+ChatWidget.loadURL = function(url) {
+  var ok = this.relay("canUnload");
+  if(ok) location.href = url;
+};
+
+#### Sending an unknown action to be handled higher up
+
+A module can handle an unknown request by passing it to it's parents 
+to be handled.
+
+ChatWidget.mailto.onClick = function(node) {
+  this.relay("sendmail", node.href);
+};
+
+#### A web browser application that uses inline handlers
 
     <body>
     <ins cite="js:firefox">
@@ -131,9 +149,6 @@ event handlers:
     </ins>
     </body>
 
-(The `relay` call does not have to be inline in the HTML, but can be 
-called inside Javascript code.)
-
 Notice how there are multiple places where `go` is called, but `relay` 
 knows whether to call `firefox.toolbar.go()` or `firefox.urlbar.go()`.
 
@@ -146,7 +161,11 @@ Example: `relay("showFolder", "C001", this);`
 
 Walks down the node tree starting from the current node until 
 it finds a Javascript object with a "showFolder" method and calls it 
-with "C001" as the parameter.
+with "C001" as the parameter. If the "showFolder" method returns the 
+object `relay.BUBBLE`, then we continue to walk down the node tree to 
+the next node with a Javascript object with a "showFolder" method.
+
+This function returns whatever "showFolder" returns.
 
 
 #### `relay(inlineFunction, [parameters,]*, thisNode)`
@@ -166,7 +185,7 @@ instantiated. Or parses the document's root node.
 
 #### `relay.byId(string)`
 
-Gets the Javascript object that is hooked to the node with the 
+Returns the Javascript object that is hooked to the node with the 
 specified ID attribute. The ID is retrieved using `getElementById` and 
-this function is the same as calling 
+this function is equivalent to calling 
 `relay.getObjectFromNode(document.getElementById(id))`.

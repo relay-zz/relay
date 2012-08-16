@@ -47,7 +47,7 @@ function unhookObject(node) {
 }
 
 function getObjectFromNode(node) {
-  if(typeof node == "string") node = document.getElementById(node);
+  if(typeof node == "string") node = ctx.document.getElementById(node);
   return nodeObjMap[node._relayAppId];
 }
 
@@ -74,6 +74,7 @@ R.start = R.initTree = function(root) {
         //we allow instantiating objects by these methods:
         //= new com.acme.MyApp()
         //= com.acme.MyApp.getInstance()
+        //otherwise we reference the object without instantiation
         if(typeof obj == FUNCTION) {
           obj = new obj(appName, node);
 
