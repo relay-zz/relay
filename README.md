@@ -87,6 +87,10 @@ to different instances of `Button`.
 Note that inline event handlers is optional and you may use `relay` 
 with `addEventLister` too.
 
+    $(".nav button").click(function(event) {
+      relay("checkMe", 1, event);
+    });
+
 
 Examples
 --------
@@ -163,8 +167,7 @@ with "C001" as the parameter. If the "showFolder" method returns the
 object `relay.BUBBLE`, then we continue to walk down the node tree to 
 the next node with a Javascript object with a "showFolder" method.
 
-This function returns the response of "showFolder" stored in the 
-"value" property of the returned object.
+This function returns whatever "showFolder" returns.
 
 If the call is being made inside an object backed by an `INS` node, 
 you can also make the call using this syntax: 
