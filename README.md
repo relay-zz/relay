@@ -47,6 +47,43 @@ the path of the HTML tree.
 This reduces a lot of the clean up code that typically needs to be 
 written when making single-page web applications.
 
+### The power of relays
+
+Event handling is the ugliest part of a program. Not hardest, but 
+ugliest.
+
+For event handling, typically one resorts to `addEventListener` and 
+`handleEvent`. But let's face it, every object will have to expose an 
+event handler that is registered with another object so that the other 
+object can call the handler when something exciting happens. Then you 
+have to call `removeEventListener` whenever an object changes so now 
+you have to keep track of when objects arrive and go. And for every 
+separate event you need to have a separate event listener dance ritual. 
+Catch my drift? What if your object is thrown away and you forgot to 
+`removeEventListener`, well now you got unexpected behavior and possibly 
+memory leaks. The ugly just got uglier.
+
+Another technique is to resort to `publish-subscribe` which is 
+essentially a giant singleton that everyone hooks up with. It is a giant 
+event bus where raised events get published to and interested parties 
+can subscribe to. It's quite the decoupling, but again, you need to 
+remember to unsubscribe when objects go away or you will get unexpected 
+behavior. It sounds nice, but what you've just done is thrown a bunch 
+of events into the sea and see which fishing net picks out which events.
+You're betting that someone else with the same sized net hasn't caught 
+your fish first (intentionally or accidentally). After all, how can you 
+know who else is finishing in the same lake?
+
+Then comes `relay` to the rescue. It introduces structure in a simple 
+way. And it doesn't it by free riding on top of your HTML DOM tree. 
+After all, what is more structured than HTML, and what is more free 
+than what the browser has already built for you?
+
+It's clean and follows a predefined path without deviation. There is 
+no mixing with the wrong crowd. And there is no dance ritual and 
+no housekeeping.
+
+### Modular
 
 #### Imagine modules as iframes
 
@@ -136,6 +173,21 @@ to be handled.
 Notice how there are multiple places where `go` is called, but `relay` 
 knows whether to call `firefox.toolbar.go()` or `firefox.urlbar.go()`.
 
+#### Working with mustache
+
+    <INS cite="js:ui.DatePicker"></INS>
+
+    <script>
+    ui.DatePicker = function(appName, node) {
+      //initialize our view
+      node.innerHTML = Mustache.render(document.getElementById(appName).innerHTML, this.getData());
+    };
+    </script>
+    <script type="text/x-template" id="ui.DatePicker">
+      <table>...</table>
+    </script>
+
+
 #### Localized handlers
 
 Since events are passed down the node tree until it meets an object 
@@ -212,3 +264,8 @@ should call each other by passing messages down the node tree.
 current object cannot handle it (because it doesn't have a method of 
 the correct name), then the message is passed further down the tree 
 until someone can handle it.
+
+
+Browser support
+---------------
+Relay works on IE6+, Firefox 1.0+, Opera 8+, Safari, iOS 4+
