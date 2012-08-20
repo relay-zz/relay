@@ -109,7 +109,8 @@ function R(type, args, node) {
     //relay(function(){this.showMenu();}, this);
     while(node) {
       if(node._relayAppId && (obj = getObjectFromNode(node))) {
-        return type.apply(obj, args) || node;
+        value = type.apply(obj, args);
+        return {value:value, node:node, obj:obj};
       }
       node = node.parentNode;
     }
@@ -118,10 +119,11 @@ function R(type, args, node) {
     while(node) {
       if(node._relayAppId && (obj = getObjectFromNode(node)) && obj[type]) {
         value = obj[type].apply(obj, args);
-        if(value != R.BUBBLE) return value || node;
+        if(value != R.BUBBLE) return {value:value, node:node, obj:obj};
       }
       node = node.parentNode;
     }
+    return value;
   }
 }
 

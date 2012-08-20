@@ -155,7 +155,7 @@ Syntax
 
 #### `relay(functionName, [parameters,]*, thisNode)`
 
-Example: `relay("showFolder", "C001", this);`
+Example: `var retVal = relay("showFolder", "C001", this);`
 
 Walks down the node tree starting from the current node until 
 it finds a Javascript object with a "showFolder" method and calls it 
@@ -163,7 +163,8 @@ with "C001" as the parameter. If the "showFolder" method returns the
 object `relay.BUBBLE`, then we continue to walk down the node tree to 
 the next node with a Javascript object with a "showFolder" method.
 
-This function returns whatever "showFolder" returns.
+This function returns the response of "showFolder" stored in the 
+"value" property of the returned object.
 
 If the call is being made inside an object backed by an `INS` node, 
 you can also make the call using this syntax: 
@@ -188,7 +189,7 @@ instantiated. Or parses the document's root node.
 Returns the Javascript object that is hooked to the node with the 
 specified ID attribute. The ID is retrieved using `getElementById` and 
 this function is equivalent to calling 
-`relay.getObjectFromNode(document.getElementById(id))`.
+`relay.getObjectFromNode(document.getElementById(id) || id)`.
 
 
 Rules of engagement
