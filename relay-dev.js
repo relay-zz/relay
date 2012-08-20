@@ -72,11 +72,13 @@ R.start = R.initTree = function(root) {
         obj = findNestedObject(appName);
 
         //we allow instantiating objects by these methods:
-        //= new com.acme.MyApp()
-        //= com.acme.MyApp.getInstance()
+        //= new com.acme.MyApp(appName, node)
+        //= com.acme.MyApp.getInstance(appName, node)
         //otherwise we reference the object without instantiation
         if(typeof obj == FUNCTION) {
           obj = new obj(appName, node);
+          //passing in the appName allows the object to map out further 
+          //resources that are identified by the appName. e.g., templates
 
         } else if(typeof obj.getInstance == FUNCTION) {
           obj = obj.getInstance(appName, node);

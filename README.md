@@ -4,14 +4,14 @@ relay
 Relay is a framework for organizing Javascript applications into scoped 
 modules that are tied to HTML nodes.
 
-Relay is not a closed framework and does not duplicate the 
-myriad of helper functions like [jQuery](http://www.jquery.com) or 
-template systems like [mustache](http://mustache.github.com), which work 
-fine in tandem with this framework.
-
 Relay imposes an organization where messages are passed down the HTML 
 tree to other Javascript objects, thereby eliminating the need to 
-pass object references around.
+pass object references around, which simplifies application design.
+
+Relay serves as the pipelining and scaffolding only and does not duplicate 
+the myriad of helper functions like [jQuery](http://www.jquery.com) or 
+template systems like [mustache](http://mustache.github.com), which work 
+in tandem with this framework.
 
 
 Installation
@@ -28,37 +28,51 @@ before your `</BODY>` tag.
     <script>relay.start();</script>
 
 
-Concepts
+Benefits
 --------
 
-#### Little windows
+Relay allows you to write application modules without needing to worry 
+about how they link together. This is particularly useful when writing 
+single-page web application. You can swap modules in and out or nest 
+modules within one another simply by manipulating the HTML at any time 
+even when the application is already running.
 
-Think of each module as being a separate browser window. Each "window" 
-has it's own set of global variables and functions which can be invoked 
-from anywhere within the window. The global variables are not exposed 
-to the outside world, thereby creating a nice self-contained cocoon.
+One of the pains in writing complex applications is the need to add 
+callback functions (event listeners) in all child objects and removing 
+the callbacks when the child object is removed. Relay eliminates the 
+need for these callback functions by allowing child objects to dispatch 
+events to it's parent and ancestor objects systematically following 
+the path of the HTML tree.
+
+This reduces a lot of the clean up code that typically needs to be 
+written when making single-page web applications.
+
+
+#### Imagine modules as iframes
+
+Think of each module as being a separate browser window in an iframe. 
+Each "window" has it's own set of global variables and global functions 
+which can be invoked from anywhere within the window. The global 
+variables are also not exposed to the outside world.
 
 The global functions can also be called inline by the HTML and calling 
 them inline will not affect other functions outside of the window, in 
 say, an iframe or a parent frame.
 
-These windows serve as nice self-contained modules that allow functions 
-to be freely shared within itself, yet separated from the world outside.
-
 Think of the parallels in the follow examples:
 
 `<INS cite="js:.....">` maps to `window.onload = function() {}`
 
-`relay("openLightbox", "/", this)` maps to `window.open("/", "_blank")`
+`relay("openLightbox", "://yahoo.com", this)` maps to `window.open("://yahoo.com", "_blank")`
 
 `<div onclick="relay('setCount', 1, this);">` maps to `<div onclick="count=1;">`
 
 
-#### Inline event handlers
+#### Imagine modules with inline event handlers
 
 If you yearn for the good old days of inline event handlers, but don't 
-want to pollute the global object or need the handler to be specific 
-to a particular instance, then `relay` can help you.
+want to pollute the global object or want the handler to be specific 
+to a particular instance of multiple objects, then `relay` can help you.
 
     <INS cite="js:ui.Button">
       <input type="checkbox" onclick="relay('checkMe', 1, this);">
@@ -70,39 +84,8 @@ to a particular instance, then `relay` can help you.
 Clicking on either checkboxes won't mix up their code as they refer 
 to different instances of `Button`.
 
-
-#### Localized handlers
-
-Since messages are passed down the node tree until it meets an object 
-which is able to handle it, you can implement what we call localized 
-handlers.
-
-An ideal example is in making status/loading indicators.
-
-When a status event propagates out from within a module, if the module 
-can show it's own status, then it can handle it by itself. If 
-not, then a higher up module can use it's own status indicator. If it 
-still can't, then it will propagate to the top and the main application 
-can use the ultimate status indicator to indicate status.
-
-
-Rules of engagement
--------------------
-
-* Javascript objects should not be loaded/instantiated programmatically. 
-They are automatically loaded when the `relay` parser finds an 
-`<INS cite="js:.....">` tag that references a Javascript constructor.
-
-* Relay will instantiate that object and store a reference to it 
-privately. It cannot be referenced directly except through the node.
-
-* Application objects should not reference each other directly, but 
-should call each other by passing messages down the node tree.
-
-* If a message is passed down by a node higher up in the tree and the 
-current object cannot handle it (because it doesn't have a method of 
-the correct name), then the message is passed further down the tree 
-until someone can handle it.
+Note that inline event handlers is optional and you may use `relay` 
+with `addEventLister` too.
 
 
 Examples
@@ -140,9 +123,6 @@ to be handled.
           <input type="text">
           <button onclick="relay('go', this);">Go</button>
         </ins>
-        <ins cite="js:firefox.spinner">
-          <img src="">
-        </ins>
       </ins>
       <ins cite="js:firefox.iframe">
       </ins>
@@ -151,6 +131,24 @@ to be handled.
 
 Notice how there are multiple places where `go` is called, but `relay` 
 knows whether to call `firefox.toolbar.go()` or `firefox.urlbar.go()`.
+
+#### Localized handlers
+
+Since events are passed down the node tree until it meets an object 
+which is able to handle it, you can implement what we call localized 
+handlers.
+
+An ideal example is in making loading indicators. Sometimes we want the 
+loading indicator to be near the object which is loading. But sometimes 
+the object itself doesn't have it's own loading indicator so a global 
+loading indicator needs to be used.
+
+When a status event propagates out from within a module, if the module 
+can show it's own status, then it can handle it by itself. If 
+not, then a higher up module can use it's own status indicator. If it 
+still can't, then it will propagate to the top and the main application 
+can use the ultimate status indicator to indicate status.
+
 
 Syntax
 ------
@@ -191,3 +189,22 @@ Returns the Javascript object that is hooked to the node with the
 specified ID attribute. The ID is retrieved using `getElementById` and 
 this function is equivalent to calling 
 `relay.getObjectFromNode(document.getElementById(id))`.
+
+
+Rules of engagement
+-------------------
+
+* Javascript objects should not be loaded/instantiated programmatically. 
+They are automatically loaded when the `relay` parser finds an 
+`<INS cite="js:.....">` tag that references a Javascript constructor.
+
+* Relay will instantiate that object and store a reference to it 
+privately. It cannot be referenced directly except through the node.
+
+* Application objects should not reference each other directly, but 
+should call each other by passing messages down the node tree.
+
+* If a message is passed down by a node higher up in the tree and the 
+current object cannot handle it (because it doesn't have a method of 
+the correct name), then the message is passed further down the tree 
+until someone can handle it.
