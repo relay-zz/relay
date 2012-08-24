@@ -1,8 +1,12 @@
 <html>
 <head><title>Relay Framework Demo</title>
-<script src="relay.js"></script>
+<script src="relay-dev.js"></script>
 <script>
-var Mail = {};
+var Mail = {
+  alert: function() {
+    alert("You have clicked on a message.");
+  }
+};
 
 Mail.Folders = {
   openFolder: function(id) {
@@ -94,7 +98,7 @@ table, tr, td {padding:0; border:0; margin:0}
 
   <ins id="pview" cite="js:Mail.Preview" style="float:left; width:58%">
     <script type="text/x-template">
-      <blockquote>%body%</blockquote>
+      <blockquote onclick="relay('alert',event);">%body%</blockquote>
     </script><span></span>
   </ins>
 </ins>

@@ -30,6 +30,10 @@ function findNestedObject(path) {
 var nodeObjMap = {};
 var nodeObjMapIdx = 1;
 
+var FUNCTION = "function",
+    THIS_ERR = "invalid 'this'",
+    ArraySlice = Array.prototype.slice;
+
 function hookObjectToNode(obj, node) {
   if(node.nodeType != 1) throw node;
   if(!node._relayAppId) {
@@ -56,7 +60,9 @@ function relayDelegate(a, b) {
   R(a, b, this);
 }
 
-var FUNCTION = "function";
+R.unload = function() {
+  nodeObjMap = {};
+};
 
 R.start = R.initTree = function(root) {
   if(!root || !root.nodeType) root = ctx.document.body || ctx.document.documentElement;
@@ -92,16 +98,15 @@ R.start = R.initTree = function(root) {
   }
 };
 
-var ArraySlice = Array.prototype.slice;
-
 function R(type, args, node) {
   args = ArraySlice.call(arguments, 1);
   node = args.pop();
 
-  if(!node || node == ctx) throw type;  //node parameter was [Window] or null
+  if(!node || node == ctx) throw THIS_ERR;
 
   //we allow passing in an Event or JSObject instead of Node
-  if(!node.nodeType) node = node.relayBaseNode || node.target || node.srcElement;
+  if(!node.nodeType) node = node.relayBaseNode || (node.preventDefault && node.target) || node.srcElement || node;
+  if(!node.nodeType) throw THIS_ERR;
 
   var value, obj;
   if(typeof type == FUNCTION) {
