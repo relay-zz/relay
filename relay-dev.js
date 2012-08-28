@@ -23,30 +23,26 @@ var FUNCTION = "function",
     THIS_ERR = "invalid 'this'",
     ArraySlice = Array.prototype.slice;
 
-function hookObjectToNode(obj, node) {
+R.hookObjectToNode = function(obj, node) {
   if(node.nodeType != 1) throw node;
   if(!node._relayAppId) {
     node._relayAppId = ++nodeObjMapIdx;
     nodeObjMap[nodeObjMapIdx] = obj;
     obj.relayBaseNode = node;
   }
-}
+};
 
-function unhookObject(node) {
+R.unhookObject = function(node) {
   node = node.relayBaseNode || node;
   var id = node._relayAppId;
   nodeObjMap[id].relayBaseNode = node._relayAppId = null;
   delete nodeObjMap[id];
-}
+};
 
 function getObjectFromNode(node) {
   if(typeof node == "string") node = ctx.document.getElementById(node);
   return nodeObjMap[node._relayAppId];
 }
-
-R.unload = function() {
-  nodeObjMap = {};
-};
 
 R.start = R.initTree = function(root) {
   if(!root || !root.nodeType) root = ctx.document.body || ctx.document.documentElement;
@@ -98,7 +94,40 @@ R.initAndHookObject = function(obj, appName, node) {
     if(!obj) throw appName;
   }
 
-  hookObjectToNode(obj, node);
+  R.hookObjectToNode(obj, node);
+};
+
+R.unload = function() {
+  nodeObjMap = {};
+};
+
+R.publish = function(type, args, node) {
+  args = ArraySlice.call(arguments, 1);
+  node = args.pop();
+
+  if(!node || node == ctx) throw THIS_ERR;
+
+  //we allow passing in an Event or JSObject instead of Node
+  if(!node.nodeType) node = node.relayBaseNode || (node.preventDefault && node.target) || node.srcElement || node;
+  if(!node.nodeType) throw THIS_ERR;
+
+  var obj, sub, err,
+    root = node,
+    i = 0,
+    list = node.getElementsByTagName("INS");
+
+  while(node) {
+    try {
+      while(node = list[i++]) {
+        if(node._relayAppId && (obj = getObjectFromNode(node)) && (sub = obj.subscribe) && sub[type]) {
+          sub[type].apply(obj, args);
+        }
+      }
+    } catch(e) {
+      err = e;
+    }
+  }
+  if(err) R("onPubSubError", err, root);
 };
 
 function R(type, args, node) {
@@ -135,8 +164,6 @@ function R(type, args, node) {
 }
 
 //export functions
-R.hookObjectToNode = hookObjectToNode;
-R.unhookObject = unhookObject;
 R.byId = R.getObjectFromNode = getObjectFromNode;
 R.BUBBLE = {};
 
