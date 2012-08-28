@@ -138,7 +138,7 @@ A module can send a message to it's parents asking if any of them have
 objections to navigating away from the current page.
 
     ChatWidget.loadURL = function(url) {
-      var ok = this.relay("canUnload");
+      var ok = relay("canUnload", this);
       if(ok) location.href = url;
     };
 
@@ -148,7 +148,7 @@ A module can handle an unknown request by passing it to it's parents
 to be handled.
 
     ChatWidget.mailtoButton.onClick = function(node) {
-      this.relay("sendmail", node.href);
+      relay("sendmail", node.href, this);
     };
 
 #### A web browser application that uses inline handlers
@@ -220,10 +220,6 @@ object `relay.BUBBLE`, then we continue to walk down the node tree to
 the next node with a Javascript object with a "showFolder" method.
 
 This function returns whatever "showFolder" returns.
-
-If the call is being made inside an object backed by an `INS` node, 
-you can also make the call using this syntax: 
-`this.relay("showFolder", "C001");`
 
 #### `relay(inlineFunction, [parameters,]*, thisNode)`
 
