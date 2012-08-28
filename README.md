@@ -47,7 +47,7 @@ the path of the HTML tree.
 This reduces a lot of the clean up code that typically needs to be 
 written when making single-page web applications.
 
-### The power of relays
+## The power of relays
 
 Event handling is the ugliest part of a program. Not hardest, but 
 ugliest.
@@ -83,7 +83,7 @@ It's clean and follows a predefined path without deviation. There is
 no mixing with the wrong crowd. And there is no dance ritual and 
 no housekeeping.
 
-### Modular
+## Modular
 
 #### Imagine modules as iframes
 

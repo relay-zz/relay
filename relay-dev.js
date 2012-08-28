@@ -1,4 +1,4 @@
-/** Copyright 2012 mocking@gmail.com
+/** Copyright 2012 mocking@gmail.com * http://relay.github.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,17 +14,6 @@ limitations under the License. */
 
 var relay = function(ctx) {
 "use strict";
-
-//returns a global variable or a property of a variable by name
-function findNestedObject(path) {
-  var i, obj = ctx;
-  if((i = obj[path])) return i;
-
-  i = 0;
-  path = path.split(".");
-  while(path[i] && (obj = obj[ path[i++] ]));
-  return obj;  
-}
 
 //a mapping of uniquely generated numbers to objects
 var nodeObjMap = {};
@@ -55,11 +44,6 @@ function getObjectFromNode(node) {
   return nodeObjMap[node._relayAppId];
 }
 
-function relayDelegate(a, b) {
-  //"this" refers to the object to which this function gets attached (delegated)
-  R(a, b, this);
-}
-
 R.unload = function() {
   nodeObjMap = {};
 };
@@ -67,35 +51,54 @@ R.unload = function() {
 R.start = R.initTree = function(root) {
   if(!root || !root.nodeType) root = ctx.document.body || ctx.document.documentElement;
 
-  var node, appName, obj,
-    list = root.getElementsByTagName("INS");
+  var appName,
+    i = 0,
+    list = root.getElementsByTagName("INS"),
+    node = (root.nodeName == "INS") ? root : list[i++],
+    loadObject = R.loadObject;
 
-  for(var i = 0; node = list[i]; i++) {
+  do {
     if(!node._relayAppId) {
       if((appName = node.cite).substr(0, 3) == "js:") {
         //object names are stored as URIs in the CITE attribute: <INS CITE="js:com.acme.MyApp">
         appName = appName.substr(3);
-        obj = findNestedObject(appName);
 
-        //we allow instantiating objects by these methods:
-        //= new com.acme.MyApp(appName, node)
-        //= com.acme.MyApp.getInstance(appName, node)
-        //otherwise we reference the object without instantiation
-        if(typeof obj == FUNCTION) {
-          obj = new obj(appName, node);
-          //passing in the appName allows the object to map out further 
-          //resources that are identified by the appName. e.g., templates
-
-        } else if(typeof obj.getInstance == FUNCTION) {
-          obj = obj.getInstance(appName, node);
-          if(!obj) throw appName;
-        }
-
-        hookObjectToNode(obj, node);
-        if(!obj.relay) obj.relay = relayDelegate;
+        loadObject(appName, node);
       }
     }
+  } while(node = list[i++]);
+};
+
+R.loadObject = function(appName, node) {  //this function can be overridden for requireJS
+  //searches for a global variable or a property of a global variable by name
+  var i, obj = ctx, path = appName;
+  if((i = obj[path])) {
+    obj = i;
+  } else {
+    i = 0;
+    path = path.split(".");
+    while(path[i] && (obj = obj[ path[i++] ]));
   }
+
+  if(obj) R.initAndHookObject(obj, appName, node);
+};
+
+R.initAndHookObject = function(obj, appName, node) {
+  //we allow instantiating objects by these methods:
+  //= new com.acme.MyApp(appName, node)
+  //= com.acme.MyApp.getInstance(appName, node)
+  //otherwise we reference the object without instantiation
+  if(typeof obj == FUNCTION) {
+    obj = new obj(appName, node);
+    //passing in the appName allows the object to map out further 
+    //resources that are identified by the appName. e.g., templates
+
+  } else if(typeof obj.getInstance == FUNCTION) {
+    obj = obj.getInstance(appName, node);
+    if(!obj) throw appName;
+  }
+
+  hookObjectToNode(obj, node);
 };
 
 function R(type, args, node) {
@@ -132,7 +135,6 @@ function R(type, args, node) {
 }
 
 //export functions
-R.findNestedObject = findNestedObject;
 R.hookObjectToNode = hookObjectToNode;
 R.unhookObject = unhookObject;
 R.byId = R.getObjectFromNode = getObjectFromNode;
