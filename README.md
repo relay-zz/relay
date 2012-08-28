@@ -229,6 +229,15 @@ Walks down the node tree starting from the current node until
 it find a Javascript object and calls the inline function with the 
 Javascript object as the `this` scope.
 
+#### `relay.publish(topic, [parameters,]*, thisNode)`
+
+Example: `relay.publish("newposts", this);`
+
+Walks up the tree by getting all `INS` decendant nodes and seeing which has a 
+Javascript object with a "subscribe" property that points to an object 
+with a property called "newposts" which points to a function. Then 
+calls that function. Keeps doing this until all `INS` nodes are parsed.
+
 #### `relay.start()` and `relay.initTree(node)`
 
 Parses a node's children for `<INS>` tags that have objects to be 
