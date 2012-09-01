@@ -44,7 +44,7 @@ function getObjectFromNode(node) {
   return nodeObjMap[node._relayAppId];
 }
 
-R.start = R.initTree = function(root) {
+var initTree = R.start = R.initTree = function(root) {
   if(!root || !root.nodeType) root = ctx.document.body || ctx.document.documentElement;
 
   var appName,
@@ -66,6 +66,8 @@ R.start = R.initTree = function(root) {
       }
     }
   } while(node = list[i++]);
+
+  return getObjectFromNode(root);
 };
 
 R.loadObject = function(appName, node) {  //this function can be overridden for requireJS
@@ -121,13 +123,15 @@ R.publish = function(type, args, node) {
 
   while(node) {
     try {
-      while(node = list[i++]) {
+      while(node = list[i]) {
         if(node._relayAppId && (obj = getObjectFromNode(node)) && (sub = obj.subscribe) && sub[type]) {
           sub[type].apply(obj, args);
         }
+        if(list[i] == node) i++;
       }
     } catch(e) {
       err = e;
+      if(list[i] == node) i++;
     }
   }
   if(err) R("onPubSubError", err, root);
@@ -176,5 +180,5 @@ return R;
 
 relay.handler = function(e) {
   e = e || event;
-  relay(e.type, e, e.target || e.srcElement);
+  relay("on" + e.type, e, e.target || e.srcElement);
 };
