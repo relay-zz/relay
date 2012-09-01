@@ -59,7 +59,10 @@ R.start = R.initTree = function(root) {
         //object names are stored as URIs in the CITE attribute: <INS CITE="js:com.acme.MyApp">
         appName = appName.substr(3);
 
-        loadObject(appName, node);
+        if(appName == "relay.ignore") {
+          i += node.getElementsByTagName("INS").length;
+
+        } else loadObject(appName, node);
       }
     }
   } while(node = list[i++]);
@@ -170,3 +173,8 @@ R.BUBBLE = {};
 return R;
 
 }(this);
+
+relay.handler = function(e) {
+  e = e || event;
+  relay(e.type, e, e.target || e.srcElement);
+};
