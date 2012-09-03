@@ -21,6 +21,7 @@ var nodeObjMapIdx = 1;
 
 var FUNCTION = "function",
     THIS_ERR = "invalid 'this'",
+    RELAY_ERR = "onRelayError",
     ArraySlice = Array.prototype.slice;
 
 R.hookObjectToNode = function(obj, node) {
@@ -59,8 +60,8 @@ var initTree = R.start = R.initTree = function(root) {
         //object names are stored as URIs in the CITE attribute: <INS CITE="js:com.acme.MyApp">
         appName = appName.substr(3);
 
-        if(appName == "relay.ignore") {
-          i += node.getElementsByTagName("INS").length;
+        if(appName.substr(0, 6) == "relay.") {
+          if(appName == "relay.ignore") i += node.getElementsByTagName("INS").length;
 
         } else loadObject(appName, node);
       }
@@ -106,7 +107,7 @@ R.unload = function() {
   nodeObjMap = {};
 };
 
-R.publish = function(type, args, node) {
+R.forward = function(type, args, node) {
   args = ArraySlice.call(arguments, 1);
   node = args.pop();
 
@@ -134,7 +135,7 @@ R.publish = function(type, args, node) {
       if(list[i] == node) i++;
     }
   }
-  if(err) R("onPubSubError", err, root);
+  if(err) R(RELAY_ERR, err, type, root, root);
 };
 
 function R(type, args, node) {
@@ -159,12 +160,16 @@ function R(type, args, node) {
     }
 
   } else {
-    while(node) {
-      if(node._relayAppId && (obj = getObjectFromNode(node)) && obj[type]) {
-        value = obj[type].apply(obj, args);
-        if(value != R.BUBBLE) return value || obj;
+    try {
+      while(node) {
+        if(node._relayAppId && (obj = getObjectFromNode(node)) && obj[type]) {
+          value = obj[type].apply(obj, args);
+          if(value != R.BUBBLE) return value || obj;
+        }
+        node = node.parentNode;
       }
-      node = node.parentNode;
+    } catch(e) {
+      R(RELAY_ERR, e, type, node, node);
     }
     return value;
   }
