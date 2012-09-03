@@ -229,9 +229,9 @@ Walks down the node tree starting from the current node until
 it find a Javascript object and calls the inline function with the 
 Javascript object as the `this` scope.
 
-#### `relay.publish(topic, [parameters,]*, thisNode)`
+#### `relay.forward(topic, [parameters,]*, thisNode)`
 
-Example: `relay.publish("newposts", this);`
+Example: `relay.forward("newposts", this);`
 
 Walks up the tree by getting all `INS` decendant nodes and seeing which has a 
 Javascript object with a "subscribe" property that points to an object 
