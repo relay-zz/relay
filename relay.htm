@@ -2,9 +2,14 @@
 <head><title>Relay Framework Demo</title>
 <script src="relay-dev.js"></script>
 <script>
+relay.strict = true;
+
 var Mail = {
   alert: function() {
     alert("You have clicked on a message.");
+  },
+  onRelayError: function(e, type, node, args) {
+    alert(Array.prototype.slice.call(arguments).join("\n"));
   }
 };
 

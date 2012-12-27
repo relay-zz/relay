@@ -24,6 +24,7 @@ var FUNCTION = "function",
     RELAY_ERR = "onRelayError",
     ArraySlice = Array.prototype.slice;
 
+//called by initAndHookObject() but can also be called by outsiders
 R.hookObjectToNode = function(obj, node) {
   if(node.nodeType != 1) throw node;
   if(!node._relayAppId) {
@@ -33,6 +34,7 @@ R.hookObjectToNode = function(obj, node) {
   }
 };
 
+//inverse of hookObjectToNode() but not used internally
 R.unhookObject = function(node) {
   node = node.relayBaseNode || node;
   var id = node._relayAppId;
@@ -71,7 +73,8 @@ var initTree = R.start = R.initTree = function(root) {
   return getObjectFromNode(root);
 };
 
-R.loadObject = function(appName, node) {  //this function can be overridden for requireJS
+//this function can be overridden for requireJS
+R.loadObject = function(appName, node) {
   //searches for a global variable or a property of a global variable by name
   var i, obj = ctx, path = appName;
   if((i = obj[path])) {
@@ -85,6 +88,7 @@ R.loadObject = function(appName, node) {  //this function can be overridden for 
   if(obj) R.initAndHookObject(obj, appName, node);
 };
 
+//only call this if you've overridden relay.loadObject()
 R.initAndHookObject = function(obj, appName, node) {
   //we allow instantiating objects by these methods:
   //= new com.acme.MyApp(appName, node)
@@ -103,6 +107,7 @@ R.initAndHookObject = function(obj, appName, node) {
   R.hookObjectToNode(obj, node);
 };
 
+//free all memory
 R.unload = function() {
   nodeObjMap = {};
 };
@@ -138,6 +143,7 @@ R.forward = function(type, args, node) {
   if(err) R(RELAY_ERR, err, type, root, root);
 };
 
+//body of the relay() function
 function R(type, args, node) {
   args = ArraySlice.call(arguments, 1);
   node = args.pop();
@@ -148,7 +154,7 @@ function R(type, args, node) {
   if(!node.nodeType) node = node.relayBaseNode || (node.preventDefault && node.target) || node.srcElement || node;
   if(!node.nodeType) throw THIS_ERR;
 
-  var value, obj;
+  var value, obj, source = node;
   if(typeof type == FUNCTION) {
     //we allow inline functions to run with the JSObject set as the scope:
     //relay(function(){this.showMenu();}, this);
@@ -168,8 +174,9 @@ function R(type, args, node) {
         }
         node = node.parentNode;
       }
+      if(value != R.BUBBLE && R.strict) throw "relay.strict=1";
     } catch(e) {
-      R(RELAY_ERR, e, type, node, node);
+      R(RELAY_ERR, e, type, node, args, source);
     }
     return value;
   }
