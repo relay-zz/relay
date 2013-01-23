@@ -27,6 +27,7 @@ var FUNCTION = "function",
 //called by initAndHookObject() but can also be called by outsiders
 R.hookObjectToNode = function(obj, node) {
   if(node.nodeType != 1) throw node;
+
   if(!node._relayAppId) {
     node._relayAppId = ++nodeObjMapIdx;
     nodeObjMap[nodeObjMapIdx] = obj;
@@ -47,6 +48,7 @@ function getObjectFromNode(node) {
   return nodeObjMap[node._relayAppId];
 }
 
+//starts parsing the children of a DOM node for INS elements with CITE attributes
 var initTree = R.start = R.initTree = function(root) {
   if(!root || !root.nodeType) root = ctx.document.body || ctx.document.documentElement;
 
@@ -77,9 +79,11 @@ var initTree = R.start = R.initTree = function(root) {
 R.loadObject = function(appName, node) {
   //searches for a global variable or a property of a global variable by name
   var i, obj = ctx, path = appName;
-  if((i = obj[path])) {
+
+  if((i = obj[path])) {  //if variable name is on the top level
     obj = i;
-  } else {
+
+  } else {  //follows the dot notation to find objects in deeper levels
     i = 0;
     path = path.split(".");
     while(path[i] && (obj = obj[ path[i++] ]));
@@ -88,18 +92,19 @@ R.loadObject = function(appName, node) {
   if(obj) R.initAndHookObject(obj, appName, node);
 };
 
-//only call this if you've overridden relay.loadObject()
+//only call this if you've overridden relay.loadObject() and need to call this manually
 R.initAndHookObject = function(obj, appName, node) {
   //we allow instantiating objects by these methods:
   //= new com.acme.MyApp(appName, node)
   //= com.acme.MyApp.getInstance(appName, node)
   //otherwise we reference the object without instantiation
+
   if(typeof obj == FUNCTION) {
     obj = new obj(appName, node);
     //passing in the appName allows the object to map out further 
     //resources that are identified by the appName. e.g., templates
 
-  } else if(typeof obj.getInstance == FUNCTION) {
+  } else if(typeof obj.getInstance == FUNCTION) {  //singleton method
     obj = obj.getInstance(appName, node);
     if(!obj) throw appName;
   }
@@ -107,11 +112,12 @@ R.initAndHookObject = function(obj, appName, node) {
   R.hookObjectToNode(obj, node);
 };
 
-//free all memory
+//free all memory. Calling this is optional as browser should garbage collect
 R.unload = function() {
   nodeObjMap = {};
 };
 
+//parse all decendents for INS elements and call a named method on them
 R.forward = function(type, args, node) {
   args = ArraySlice.call(arguments, 1);
   node = args.pop();
@@ -133,13 +139,15 @@ R.forward = function(type, args, node) {
         if(node._relayAppId && (obj = getObjectFromNode(node)) && (sub = obj.subscribe) && sub[type]) {
           sub[type].apply(obj, args);
         }
-        if(list[i] == node) i++;
+        if(list[i] == node) i++;  //only increment if order of node has not shifted
       }
     } catch(e) {
       err = e;
       if(list[i] == node) i++;
     }
   }
+
+  //pass errors outwards so that others can optionally detect them
   if(err) R(RELAY_ERR, err, type, root, root);
 };
 
@@ -165,7 +173,7 @@ function R(type, args, node) {
       node = node.parentNode;
     }
 
-  } else {
+  } else {  //typeof "type" == string
     try {
       while(node) {
         if(node._relayAppId && (obj = getObjectFromNode(node)) && obj[type]) {
@@ -174,7 +182,10 @@ function R(type, args, node) {
         }
         node = node.parentNode;
       }
+
+      //optional flag (relay.strict=1) means all events must be consumed
       if(value != R.BUBBLE && R.strict) throw "relay.strict=1";
+
     } catch(e) {
       R(RELAY_ERR, e, type, node, args, source);
     }
@@ -190,6 +201,11 @@ return R;
 
 }(this);
 
+//allows reusing the same event handler function for all nodes:
+//  addEventListener("click", relay.handler, false)
+//    --> relay("onclick", event, node)
+//  addEventListener("keypress", relay.handler, false)
+//    --> relay("onkeypress", event, node)
 relay.handler = function(e) {
   e = e || event;
   relay("on" + e.type, e, e.target || e.srcElement);
