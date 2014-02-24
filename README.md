@@ -18,15 +18,16 @@ Installation
 ------------
 
 Add this to your HTML page inside the `<HEAD>` tag.
-
-    <script src="relay.js"></script>
-    <style>ins{text-decoration:none}</style>
+```html
+ <script src="relay.js"></script>
+ <style>ins{text-decoration:none}</style>
+```
 
 Add this to the bottom of your page below most of your content, but 
 before your `</BODY>` tag.
-
-    <script>relay.start();</script>
-
+```html
+ <script>relay.start();</script>
+```
 
 Benefits
 --------
@@ -110,24 +111,24 @@ Think of the parallels in the follow examples:
 If you yearn for the good old days of inline event handlers, but don't 
 want to pollute the global object or want the handler to be specific 
 to a particular instance of multiple objects, then `relay` can help you.
-
-    <INS cite="js:ui.Button">
-      <input type="checkbox" onclick="relay('checkMe', 1, this);">
-    </INS>
-    <INS cite="js:ui.Button">
-      <input type="checkbox" onclick="relay('checkMe', 1, this);">
-    </INS>
-
+```html
+<INS cite="js:ui.Button">
+  <input type="checkbox" onclick="relay('checkMe', 1, this);">
+</INS>
+<INS cite="js:ui.Button">
+  <input type="checkbox" onclick="relay('checkMe', 1, this);">
+</INS>
+```
 Clicking on either checkboxes won't mix up their code as they refer 
 to different instances of `Button`.
 
 Note that inline event handlers is optional and you may use `relay` 
 with `addEventLister` too.
-
-    $(".nav button").click(function(event) {
-      relay("checkMe", 1, event);
-    });
-
+```javascript
+ $(".nav button").click(function(event) {
+   relay("checkMe", 1, event);
+ });
+```
 
 Examples
 --------
@@ -136,57 +137,57 @@ Examples
 
 A module can send a message to it's parents asking if any of them have 
 objections to navigating away from the current page.
-
-    ChatWidget.loadURL = function(url) {
-      var ok = relay("canUnload", this);
-      if(ok) location.href = url;
-    };
-
+```javascript
+ ChatWidget.loadURL = function(url) {
+   var ok = relay("canUnload", this);
+   if(ok) location.href = url;
+ };
+```
 #### Asking parents to handle an unknown action
 
 A module can handle an unknown request by passing it to it's parents 
 to be handled.
-
-    ChatWidget.mailtoButton.onClick = function(node) {
-      relay("sendmail", node.href, this);
-    };
-
+```javascript
+ ChatWidget.mailtoButton.onClick = function(node) {
+   relay("sendmail", node.href, this);
+ };
+```
 #### A web browser application that uses inline handlers
-
-    <body>
-    <ins cite="js:firefox">
-      <ins cite="js:firefox.toolbar">
-        <button onclick="relay('go', -1, this);">Back</button>
-        <button onclick="relay('go', 1, this);">Forward</button>
-        <button onclick="relay('go', 0, this);">Reload</button>
-        <button onclick="relay('stop', this);">Stop</button>
-        <ins cite="js:firefox.urlbar">
-          <input type="text">
-          <button onclick="relay('go', this);">Go</button>
-        </ins>
-      </ins>
-      <ins cite="js:firefox.iframe">
-      </ins>
+```html
+<body>
+<ins cite="js:firefox">
+  <ins cite="js:firefox.toolbar">
+    <button onclick="relay('go', -1, this);">Back</button>
+    <button onclick="relay('go', 1, this);">Forward</button>
+    <button onclick="relay('go', 0, this);">Reload</button>
+    <button onclick="relay('stop', this);">Stop</button>
+    <ins cite="js:firefox.urlbar">
+      <input type="text">
+      <button onclick="relay('go', this);">Go</button>
     </ins>
-    </body>
-
+  </ins>
+  <ins cite="js:firefox.iframe">
+  </ins>
+</ins>
+</body>
+```
 Notice how there are multiple places where `go` is called, but `relay` 
 knows whether to call `firefox.toolbar.go()` or `firefox.urlbar.go()`.
 
 #### Working with mustache
+```html
+<INS cite="js:ui.DatePicker"></INS>
 
-    <INS cite="js:ui.DatePicker"></INS>
-
-    <script>
-    ui.DatePicker = function(appName, node) {
-      //initialize our view
-      node.innerHTML = Mustache.render(document.getElementById(appName).innerHTML, this.getData());
-    };
-    </script>
-    <script type="text/x-template" id="ui.DatePicker">
-      <table>...</table>
-    </script>
-
+<script>
+ui.DatePicker = function(appName, node) {
+  //initialize our view
+  node.innerHTML = Mustache.render(document.getElementById(appName).innerHTML, this.getData());
+};
+</script>
+<script type="text/x-template" id="ui.DatePicker">
+  <table>...</table>
+</script>
+```
 
 #### Localized handlers
 
@@ -249,7 +250,9 @@ instantiated. Or parses the document's root node.
 Returns the Javascript object that is hooked to the node with the 
 specified ID attribute. The ID is retrieved using `getElementById` and 
 this function is equivalent to calling 
-`relay.getObjectFromNode(document.getElementById(id) || id)`.
+```javascript
+relay.getObjectFromNode(document.getElementById(id) || id)
+```
 
 
 Rules of engagement
